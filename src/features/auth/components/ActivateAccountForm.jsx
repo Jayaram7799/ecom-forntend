@@ -1,64 +1,56 @@
-import { useState } from "react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { toast } from "react-toastify";
 
-import { resetPassword } from "../services/authApi";
+import { activateAccount } from "../services/authApi";
 
 import InputField from "../../../components/InputField";
 import Button from "../../../components/Button";
 import ErrorMessage from "../../../components/ErrorMessage";
 import FormWrapper from "../../../components/FormWrapper";
 
-const ResetPasswordForm = () => {
+const ActivateAccountForm = () => {
   const navigate = useNavigate();
   const location = useLocation();
 
-  // Token comes from:
-  // /reset-password?token=xxxxxxxx
-  const searchParams = new URLSearchParams(location.search);
-  const resetToken = searchParams.get("token");
+  const emailFromState = location.state?.email;
+
+  const [apiError, setApiError] = useState("");
+  const [loading, setLoading] = useState(false);
 
   const {
     register,
     handleSubmit,
     watch,
+    setValue,
     formState: { errors },
   } = useForm({
     defaultValues: {
+      email: emailFromState || "",
+      temporaryPassword: "",
       newPassword: "",
       confirmPassword: "",
     },
   });
 
-  const [apiError, setApiError] = useState("");
-  const [loading, setLoading] = useState(false);
+  // Set email automatically when coming from registration page
+  useEffect(() => {
+    if (emailFromState) {
+      setValue("email", emailFromState);
+    }
+  }, [emailFromState, setValue]);
 
   const onSubmit = async (data) => {
     setApiError("");
-
-    if (!resetToken) {
-      const message =
-        "Reset token is missing or invalid. Please use the password reset link from your email.";
-
-      setApiError(message);
-      toast.error(message);
-      return;
-    }
-
     setLoading(true);
 
     try {
-      const requestData = {
-        token: resetToken,
-        newPassword: data.newPassword,
-        confirmPassword: data.confirmPassword,
-      };
-
-      const response = await resetPassword(requestData);
+      const response = await activateAccount(data);
 
       if (response?.success) {
-        toast.success("Password reset successfully!", {
+        toast.success("Account activated successfully!", {
+          position: "top-right",
           autoClose: 1500,
         });
 
@@ -69,12 +61,16 @@ const ResetPasswordForm = () => {
         return;
       }
 
-      const message = response?.message || "Unable to reset password";
+      const message = response?.message || "Account activation failed";
 
       setApiError(message);
-      toast.error(message);
+
+      toast.error(message, {
+        position: "top-right",
+        autoClose: 3000,
+      });
     } catch (err) {
-      console.error("Reset password error:", err);
+      console.error("Account activation error:", err);
 
       const message =
         err?.response?.data?.message ||
@@ -82,16 +78,45 @@ const ResetPasswordForm = () => {
         "Something went wrong. Please try again.";
 
       setApiError(message);
-      toast.error(message);
+
+      toast.error(message, {
+        position: "top-right",
+        autoClose: 3000,
+      });
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <FormWrapper title="Reset Password">
+    <FormWrapper title="Activate Your Account">
       <form onSubmit={handleSubmit(onSubmit)}>
         <ErrorMessage message={apiError} />
+
+        {/* Email */}
+        <InputField
+          label="Email"
+          type="email"
+          autoComplete="email"
+          readOnly={!!emailFromState}
+          {...register("email", {
+            required: "Email is required",
+          })}
+        />
+
+        <p className="text-danger">{errors?.email?.message}</p>
+
+        {/* Temporary Password */}
+        <InputField
+          label="Temporary Password"
+          type="password"
+          autoComplete="off"
+          {...register("temporaryPassword", {
+            required: "Temporary password is required",
+          })}
+        />
+
+        <p className="text-danger">{errors?.temporaryPassword?.message}</p>
 
         {/* New Password */}
         <InputField
@@ -126,7 +151,7 @@ const ResetPasswordForm = () => {
         {/* Submit */}
         <Button
           type="submit"
-          text={loading ? "Resetting..." : "Reset Password"}
+          text={loading ? "Activating..." : "Activate Account"}
           disabled={loading}
         />
       </form>
@@ -134,4 +159,4 @@ const ResetPasswordForm = () => {
   );
 };
 
-export default ResetPasswordForm;
+export default ActivateAccountForm;

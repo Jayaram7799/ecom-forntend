@@ -22,26 +22,31 @@ const SignupForm = () => {
   } = useForm();
 
   const onSubmit = async (newUser) => {
+    console.log("FORM SUBMITTED:", newUser);
+
     setApiError("");
+    setLoading(true);
 
     try {
-      setLoading(true);
-
       const response = await signupUser(newUser);
 
       console.log("Signup response:", response);
 
       if (response?.status === 201) {
         navigate("/activate", {
-          state: { email: newUser.email },
+          state: {
+            email: newUser.email,
+          },
         });
       } else {
-        setApiError(response?.message);
+        setApiError(response?.message || "Signup failed");
       }
     } catch (err) {
-      console.error(err);
+      console.error("Signup error:", err);
 
-      setApiError(err?.response?.data?.message);
+      setApiError(
+        err?.response?.data?.message || err?.message || "Something went wrong",
+      );
     } finally {
       setLoading(false);
     }
@@ -64,6 +69,7 @@ const SignupForm = () => {
             },
           })}
         />
+
         <p className="text-danger">{errors?.name?.message}</p>
 
         {/* Email */}
@@ -79,6 +85,7 @@ const SignupForm = () => {
             },
           })}
         />
+
         <p className="text-danger">{errors?.email?.message}</p>
 
         {/* Phone */}
@@ -94,6 +101,7 @@ const SignupForm = () => {
             },
           })}
         />
+
         <p className="text-danger">{errors?.phone?.message}</p>
 
         {/* Submit */}

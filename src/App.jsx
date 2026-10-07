@@ -138,11 +138,19 @@ function App() {
   };
 
   const toggleCartSelection = (productId) => {
-    setSelectedCartItems((prev) =>
-      prev.includes(productId)
+    setSelectedCartItems((prev) => {
+      console.log("TOGGLE PRODUCT:", productId);
+
+      console.log("PREVIOUS SELECTION:", prev);
+
+      const next = prev.includes(productId)
         ? prev.filter((id) => id !== productId)
-        : [...prev, productId],
-    );
+        : [...prev, productId];
+
+      console.log("NEXT SELECTION:", next);
+
+      return next;
+    });
   };
 
   const clearSelectedCartItems = () => {
@@ -151,18 +159,23 @@ function App() {
 
   const removePurchasedItems = async (productIds) => {
     try {
+      console.log("Removing purchased products:", productIds);
+
       const res = await removePurchasedItemsApi(productIds);
 
       updateCartState(res.data.data);
 
       clearSelectedCartItems();
+
+      return res;
     } catch (err) {
-      console.error(err);
+      console.error("Failed to remove purchased items:", err);
 
       toast.error("Failed to update cart");
+
+      throw err;
     }
   };
-
   return (
     <BrowserRouter>
       <CartContext.Provider

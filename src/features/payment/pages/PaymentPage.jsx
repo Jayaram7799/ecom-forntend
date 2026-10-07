@@ -10,9 +10,11 @@ import CartContext from "../../../context/CartContext";
 const PaymentPage = () => {
   const navigate = useNavigate();
 
+  const { removePurchasedItems } = useContext(CartContext);
+
   const { state: payment } = useLocation();
 
-  const { selectedCartItems, removePurchasedItems } = useContext(CartContext);
+  const selectedItems = payment?.selectedItems || [];
 
   const opened = useRef(false);
 
@@ -64,10 +66,13 @@ const PaymentPage = () => {
 
           toast.dismiss(loadingToast);
 
-          if (selectedCartItems.length > 0) {
-            await removePurchasedItems(selectedCartItems);
-          }
+          if (selectedItems.length > 0) {
+            const productIds = selectedItems.map((item) => item.productId);
 
+            console.log("Purchased Product IDs:", productIds);
+
+            await removePurchasedItems(productIds);
+          }
           console.log("Payment Verified:", verifyResponse.data);
 
           toast.success(verifyResponse.data.messsage || "Payment Successful", {

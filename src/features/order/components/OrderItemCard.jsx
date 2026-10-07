@@ -14,6 +14,16 @@ import StarIcon from "@mui/icons-material/Star";
 import ShoppingBagIcon from "@mui/icons-material/ShoppingBag";
 
 const OrderItemCard = ({ item, orderStatus }) => {
+  const formatPrice = (value) => {
+    const amount = Number(value);
+
+    if (Number.isNaN(amount)) {
+      return "₹0.00";
+    }
+
+    return `₹${amount.toFixed(2)}`;
+  };
+
   return (
     <Box
       sx={{
@@ -36,7 +46,9 @@ const OrderItemCard = ({ item, orderStatus }) => {
         }}
         spacing={3}
       >
-        {/* ================= IMAGE ================= */}
+        {/* =====================================================
+            PRODUCT IMAGE
+        ====================================================== */}
 
         <Box
           sx={{
@@ -50,7 +62,7 @@ const OrderItemCard = ({ item, orderStatus }) => {
             image={
               item.imageUrl || "https://via.placeholder.com/150?text=Product"
             }
-            alt={item.productName}
+            alt={item.productName || "Product"}
             sx={{
               width: 120,
               height: 120,
@@ -62,7 +74,9 @@ const OrderItemCard = ({ item, orderStatus }) => {
           />
         </Box>
 
-        {/* ================= DETAILS ================= */}
+        {/* =====================================================
+            PRODUCT DETAILS
+        ====================================================== */}
 
         <Box flex={1}>
           <Typography variant="h6" fontWeight={700}>
@@ -80,37 +94,50 @@ const OrderItemCard = ({ item, orderStatus }) => {
             }}
           />
 
-          <Stack spacing={1} sx={{ mb: 2 }}>
+          <Stack
+            spacing={1}
+            sx={{
+              mb: 2,
+            }}
+          >
+            {/* Quantity */}
+
             <Typography color="text.secondary">
-              Quantity :
+              Quantity:
               <Typography component="span" fontWeight={600} ml={1}>
                 {item.quantity}
               </Typography>
             </Typography>
 
+            {/* Unit Price */}
+
             <Typography color="text.secondary">
-              Unit Price :
+              Unit Price:
               <Typography component="span" fontWeight={600} ml={1}>
-                ₹{item.unitPrice}
+                {formatPrice(item.price)}
               </Typography>
             </Typography>
 
+            {/* Subtotal */}
+
             <Typography color="text.secondary">
-              Total :
+              Subtotal:
               <Typography
                 component="span"
                 color="primary"
                 fontWeight={700}
                 ml={1}
               >
-                ₹{item.totalPrice}
+                {formatPrice(item.subtotal)}
               </Typography>
             </Typography>
           </Stack>
 
           <Divider sx={{ mb: 2 }} />
 
-          {/* ================= DELIVERY ================= */}
+          {/* =====================================================
+              DELIVERY STATUS
+          ====================================================== */}
 
           {orderStatus === "DELIVERED" ? (
             <Stack direction="row" spacing={1} alignItems="center">
@@ -128,7 +155,9 @@ const OrderItemCard = ({ item, orderStatus }) => {
             </Stack>
           )}
 
-          {/* ================= RATE PRODUCT ================= */}
+          {/* =====================================================
+              RATE PRODUCT
+          ====================================================== */}
 
           {orderStatus === "DELIVERED" && (
             <Button

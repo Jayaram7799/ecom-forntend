@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useContext } from "react";
 import { useNavigate, Link } from "react-router-dom";
 import { toast } from "react-toastify";
 
@@ -9,25 +9,38 @@ import Button from "../../../components/Button";
 import ErrorMessage from "../../../components/ErrorMessage";
 import FormWrapper from "../../../components/FormWrapper";
 import AuthSwitch from "./AuthSwitch";
-import { useContext } from "react";
+
 import UserContext from "../../../context/UserContext";
 
 const LoginForm = () => {
   const navigate = useNavigate();
+
   const { setUser } = useContext(UserContext);
+
   const [form, setForm] = useState({
     email: "",
     password: "",
   });
 
   const [error, setError] = useState("");
+  const [loading, setLoading] = useState(false);
+
+  // ==============================
+  // Handle Input Change
+  // ==============================
 
   const handleChange = (e) => {
-    setForm({
-      ...form,
-      [e.target.name]: e.target.value,
-    });
+    const { name, value } = e.target;
+
+    setForm((prev) => ({
+      ...prev,
+      [name]: value,
+    }));
   };
+
+  // ==============================
+  // Handle Login
+  // ==============================
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -35,53 +48,78 @@ const LoginForm = () => {
     setError("");
 
     // Validation
-    if (!form.email || !form.password) {
-      setError("Email and password are required");
+    if (!form.email.trim()) {
+      setError("Email is required");
+      return;
+    }
+
+    if (!form.password) {
+      setError("Password is required");
       return;
     }
 
     try {
-      console.log("Form Data:", form);
+      setLoading(true);
 
-      // API Call
-      const response = await loginUser(form);
+      const loginResponse = await loginUser({
+        email: form.email.trim().toLowerCase(),
+        password: form.password,
+      });
 
-      console.log("Login Response:", response);
+      console.log("Login Response:", loginResponse);
 
-      // Success
-      if (response.success) {
-        const { accessToken, userId } = response.data;
+      // ==============================
+      // Login Success
+      // ==============================
 
-        // Store token & userId
+      if (loginResponse?.success) {
+        const { accessToken } = loginResponse.data;
+
+        // Store JWT
         localStorage.setItem("token", accessToken);
-        // Fetch logged-in user details
-        const profileResponse = await getMyProfile(accessToken);
-        setUser(profileResponse.data);
 
-        // Store in Context
-        setUser(profileResponse.data);
+        // ==============================
+        // Get Logged-in User Profile
+        // ==============================
 
-        toast.success(response.message, {
-          autoClose: 1000,
+        const profileResponse = await getMyProfile();
+
+        console.log("Profile Response:", profileResponse);
+
+        if (profileResponse?.success) {
+          setUser(profileResponse.data);
+        }
+
+        // Success Toast
+        toast.success(loginResponse?.message || "Login successful", {
+          autoClose: 1500,
         });
 
-        toast.success(response.message, {
-          autoClose: 1000,
-        });
-
-        // Navigate to home page
+        // Navigate after login
         navigate("/");
+
+        return;
       }
+
+      // API returned success=false
+      const message = loginResponse?.message || "Login failed";
+
+      setError(message);
+
+      toast.error(message);
     } catch (err) {
       console.error("Login Error:", err);
 
-      const message = err.response?.data?.message || "Login failed";
+      const message =
+        err?.response?.data?.message || "Invalid email or password";
 
       setError(message);
 
       toast.error(message, {
-        autoClose: 800,
+        autoClose: 1500,
       });
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -90,6 +128,7 @@ const LoginForm = () => {
       <form onSubmit={handleSubmit}>
         <ErrorMessage message={error} />
 
+        {/* Email */}
         <InputField
           label="Email"
           name="email"
@@ -99,6 +138,7 @@ const LoginForm = () => {
           autoComplete="email"
         />
 
+        {/* Password */}
         <InputField
           label="Password"
           name="password"
@@ -108,14 +148,31 @@ const LoginForm = () => {
           autoComplete="current-password"
         />
 
-        <div style={{ textAlign: "right", marginBottom: "10px" }}>
-          <Link to="/forgot-password" style={{ textDecoration: "none" }}>
+        {/* Forgot Password */}
+        <div
+          style={{
+            textAlign: "right",
+            marginBottom: "10px",
+          }}
+        >
+          <Link
+            to="/forgot-password"
+            style={{
+              textDecoration: "none",
+            }}
+          >
             Forgot Password?
           </Link>
         </div>
 
-        <Button type="submit" text="Login" />
+        {/* Login */}
+        <Button
+          type="submit"
+          text={loading ? "Signing in..." : "Login"}
+          disabled={loading}
+        />
 
+        {/* Signup */}
         <AuthSwitch variant="login" />
       </form>
     </FormWrapper>

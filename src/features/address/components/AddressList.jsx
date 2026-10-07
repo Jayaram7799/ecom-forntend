@@ -1,4 +1,4 @@
-import { useState, useContext } from "react";
+import { useState } from "react";
 import { Box, Typography } from "@mui/material";
 import { useNavigate } from "react-router-dom";
 
@@ -8,14 +8,11 @@ import "react-toastify/dist/ReactToastify.css";
 
 import AddressCard from "./AddressCard";
 import Button from "../../../components/Button";
-import CartContext from "../../../context/CartContext";
 import apiClient from "../../../services/apiClient";
 
-const AddressList = ({ addresses = [] }) => {
+const AddressList = ({ addresses = [], selectedItems = [] }) => {
   const [selectedAddress, setSelectedAddress] = useState(null);
   const [loading, setLoading] = useState(false);
-
-  const { cartList } = useContext(CartContext);
 
   const navigate = useNavigate();
 
@@ -34,27 +31,35 @@ const AddressList = ({ addresses = [] }) => {
         return;
       }
 
-      if (!cartList || cartList.length === 0) {
+      if (!selectedItems || selectedItems.length === 0) {
+        toast.error("No products selected", {
+          autoClose: 2000,
+        });
         return;
       }
 
+      console.log("Selected items for checkout:", selectedItems);
+
       setLoading(true);
 
+      // IMPORTANT:
+      // Create order ONLY with selected products
       const orderRequest = {
         addressId: selectedAddress,
-        items: cartList.map((item) => ({
+
+        items: selectedItems.map((item) => ({
           productId: item.productId,
           quantity: item.quantity,
         })),
       };
 
-      console.log("Creating Order...");
+      console.log("Creating Order Request:", orderRequest);
 
       const orderResponse = await apiClient.post("/api/orders", orderRequest);
 
-      const orderId = orderResponse.data.orderId;
+      const orderId = orderResponse.data?.data?.orderId;
 
-      console.log("Order Created :", orderId);
+      console.log("Order Created:", orderId);
 
       let orderDetails = null;
 
@@ -65,10 +70,11 @@ const AddressList = ({ addresses = [] }) => {
 
         orderDetails = response.data.data;
 
-        console.log(orderDetails);
+        console.log("Order Details:", orderDetails);
 
         if (orderDetails?.razorpayOrderId) {
           console.log("Payment Initialized");
+
           break;
         }
 
@@ -79,18 +85,25 @@ const AddressList = ({ addresses = [] }) => {
         toast.error("Payment initialization failed. Please try again.", {
           autoClose: 2000,
         });
+
         return;
       }
 
       navigate("/payment", {
         state: {
           orderId: orderDetails.orderId,
+
           razorpayOrderId: orderDetails.razorpayOrderId,
+
           amount: orderDetails.totalAmount,
+
+          // IMPORTANT
+          // Carry selected items to PaymentPage
+          selectedItems,
         },
       });
     } catch (error) {
-      console.error(error);
+      console.error("Order creation/payment initialization failed:", error);
 
       toast.error(
         error?.response?.data?.message || "Unable to proceed to payment",

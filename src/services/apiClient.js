@@ -1,29 +1,49 @@
 import axios from "axios";
 
 const apiClient = axios.create({
-  baseURL: "http://localhost:8080",
+  baseURL: "http://localhost:9090",
+  headers: {
+    "Content-Type": "application/json",
+  },
 });
 
-// Attach token automatically
-apiClient.interceptors.request.use((config) => {
-  const token = localStorage.getItem("token");
+// ==========================================
+// REQUEST INTERCEPTOR
+// ==========================================
 
-  if (token) {
-    config.headers.Authorization = `Bearer ${token}`;
-  }
+apiClient.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem("token");
 
-  return config;
-});
+    if (token) {
+      config.headers = config.headers || {};
+      config.headers.Authorization = `Bearer ${token}`;
+    }
 
-// Global error handling
+    return config;
+  },
+  (error) => {
+    return Promise.reject(error);
+  },
+);
+
+// ==========================================
+// RESPONSE INTERCEPTOR
+// ==========================================
+
 apiClient.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    return response;
+  },
 
   (error) => {
     if (error.response?.status === 401) {
-      console.log("Unauthorized");
+      console.warn("Unauthorized request");
 
       localStorage.removeItem("token");
+
+      // Optional:
+      // localStorage.removeItem("user");
     }
 
     return Promise.reject(error);

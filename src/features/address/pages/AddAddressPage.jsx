@@ -1,4 +1,5 @@
 import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import { Box, CircularProgress, Typography } from "@mui/material";
 
 import AddressList from "../components/AddressList";
@@ -6,6 +7,11 @@ import { getMyAddresses } from "../services/addressService";
 import Navbar from "../../../components/Navbar";
 
 const AddressPage = () => {
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  const selectedItems = location.state?.selectedItems || [];
+
   const [addresses, setAddresses] = useState([]);
   const [loading, setLoading] = useState(false);
 
@@ -16,7 +22,9 @@ const AddressPage = () => {
       const response = await getMyAddresses();
 
       setAddresses(response.data);
+
       console.log("Fetched Addresses:", response.data);
+      console.log("Selected Checkout Items:", selectedItems);
     } catch (error) {
       console.error("Failed to fetch addresses", error);
     } finally {
@@ -25,6 +33,11 @@ const AddressPage = () => {
   };
 
   useEffect(() => {
+    if (selectedItems.length === 0) {
+      navigate("/cart");
+      return;
+    }
+
     fetchAddresses();
   }, []);
 
@@ -46,6 +59,7 @@ const AddressPage = () => {
   return (
     <>
       <Navbar />
+
       <Box
         sx={{
           maxWidth: "800px",
@@ -57,7 +71,7 @@ const AddressPage = () => {
           Your Addresses
         </Typography>
 
-        <AddressList addresses={addresses} />
+        <AddressList addresses={addresses} selectedItems={selectedItems} />
       </Box>
     </>
   );

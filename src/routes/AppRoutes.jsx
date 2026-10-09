@@ -23,6 +23,10 @@ const ResetPasswordPage = lazy(
   () => import("../features/auth/pages/ResetPasswordPage"),
 );
 
+const AboutPage = lazy(() => import("../pages/AboutPage"));
+
+const ContactPage = lazy(() => import("../pages/ContactPage"));
+
 // ==============================
 // Home
 // ==============================
@@ -148,6 +152,24 @@ const AppRoutes = () => {
           element={
             <ProtectedRoute>
               <OrdersPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/about"
+          element={
+            <ProtectedRoute>
+              <AboutPage />
+            </ProtectedRoute>
+          }
+        />
+
+        <Route
+          path="/contact"
+          element={
+            <ProtectedRoute>
+              <ContactPage />
             </ProtectedRoute>
           }
         />

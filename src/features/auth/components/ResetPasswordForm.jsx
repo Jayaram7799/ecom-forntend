@@ -74,7 +74,7 @@ const ResetPasswordForm = () => {
       setApiError(message);
       toast.error(message);
     } catch (err) {
-      console.error("Reset password error:", err);
+      
 
       const message =
         err?.response?.data?.message ||

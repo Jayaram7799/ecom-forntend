@@ -38,7 +38,7 @@ const AddressList = ({ addresses = [], selectedItems = [] }) => {
         return;
       }
 
-      console.log("Selected items for checkout:", selectedItems);
+      
 
       setLoading(true);
 
@@ -53,13 +53,13 @@ const AddressList = ({ addresses = [], selectedItems = [] }) => {
         })),
       };
 
-      console.log("Creating Order Request:", orderRequest);
+      
 
       const orderResponse = await apiClient.post("/api/orders", orderRequest);
 
       const orderId = orderResponse.data?.data?.orderId;
 
-      console.log("Order Created:", orderId);
+      
 
       let orderDetails = null;
 
@@ -70,7 +70,7 @@ const AddressList = ({ addresses = [], selectedItems = [] }) => {
 
         orderDetails = response.data.data;
 
-        console.log("Order Details:", orderDetails);
+        
 
         if (orderDetails?.razorpayOrderId) {
           console.log("Payment Initialized");

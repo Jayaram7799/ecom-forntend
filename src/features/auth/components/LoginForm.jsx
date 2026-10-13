@@ -66,7 +66,7 @@ const LoginForm = () => {
         password: form.password,
       });
 
-      console.log("Login Response:", loginResponse);
+      
 
       // ==============================
       // Login Success
@@ -84,7 +84,7 @@ const LoginForm = () => {
 
         const profileResponse = await getMyProfile();
 
-        console.log("Profile Response:", profileResponse);
+        
 
         if (profileResponse?.success) {
           setUser(profileResponse.data);
@@ -108,7 +108,7 @@ const LoginForm = () => {
 
       toast.error(message);
     } catch (err) {
-      console.error("Login Error:", err);
+     
 
       const message =
         err?.response?.data?.message || "Invalid email or password";

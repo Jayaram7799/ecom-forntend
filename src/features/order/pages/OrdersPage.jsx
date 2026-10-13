@@ -70,7 +70,7 @@ const OrdersPage = () => {
 
       const response = await apiClient.get("/api/orders/customer");
 
-      console.log("Full Orders API Response:", response.data);
+      
 
       const orderList = response.data?.data;
 
@@ -90,11 +90,11 @@ const OrdersPage = () => {
         return;
       }
 
-      console.log("Fetched Orders:", orderList);
+     
 
       setOrders(orderList);
     } catch (err) {
-      console.error("Failed to fetch orders:", err);
+     
 
       const errorMessage =
         err?.response?.data?.message || err?.message || "Unable to load orders";

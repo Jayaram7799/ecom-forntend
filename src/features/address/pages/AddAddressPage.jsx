@@ -23,10 +23,9 @@ const AddressPage = () => {
 
       setAddresses(response.data);
 
-      console.log("Fetched Addresses:", response.data);
-      console.log("Selected Checkout Items:", selectedItems);
+      
     } catch (error) {
-      console.error("Failed to fetch addresses", error);
+     
     } finally {
       setLoading(false);
     }
